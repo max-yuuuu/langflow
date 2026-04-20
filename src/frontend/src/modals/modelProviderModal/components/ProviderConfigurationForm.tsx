@@ -15,6 +15,7 @@ const PROVIDER_KEY_PREVIEW: Record<
   { prefix: string; totalLength: number }
 > = {
   OpenAI: { prefix: "sk-", totalLength: 164 },
+  "Custom OpenAI Compatible": { prefix: "sk-", totalLength: 64 },
   Anthropic: { prefix: "sk-ant-", totalLength: 108 },
   "Google Generative AI": { prefix: "AIza", totalLength: 39 },
   "IBM watsonx": { prefix: "", totalLength: 44 },
@@ -58,6 +59,10 @@ const getPlaceholder = (variableName: string, provider: string) => {
 
   if (providerLower === "ollama" && name.includes("url")) {
     return "http://localhost:11434";
+  }
+
+  if (providerLower.includes("custom openai") && name.includes("url")) {
+    return "https://your-openai-compatible-endpoint/v1";
   }
 
   if (

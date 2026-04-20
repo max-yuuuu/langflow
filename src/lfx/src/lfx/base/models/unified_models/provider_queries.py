@@ -93,7 +93,8 @@ def _get_all_provider_specific_field_names() -> set[str]:
 
 def get_model_providers() -> list[str]:
     """Return a sorted list of unique provider names."""
-    return sorted({md.get("provider", "Unknown") for group in MODELS_DETAILED for md in group})
+    catalog_providers = {md.get("provider", "Unknown") for group in MODELS_DETAILED for md in group}
+    return sorted(catalog_providers | set(model_provider_metadata))
 
 
 def get_provider_for_model_name(model_name: str) -> str:

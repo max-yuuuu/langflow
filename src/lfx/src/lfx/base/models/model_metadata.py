@@ -47,7 +47,7 @@ def create_model_metadata(
     )
 
 
-LIVE_MODEL_PROVIDERS: list[str] = ["Ollama", "IBM WatsonX"]
+LIVE_MODEL_PROVIDERS: list[str] = ["Custom OpenAI Compatible", "Ollama", "IBM WatsonX"]
 
 # Provider metadata configuration
 # Defines the variables (credentials, URLs, etc.) required for each model provider
@@ -90,6 +90,47 @@ MODEL_PROVIDER_METADATA: dict[str, Any] = {
             }
         ],
         "api_docs_url": "https://platform.openai.com/docs/overview",
+        "mapping": {
+            "model_class": "ChatOpenAI",
+            "model_param": "model",
+        },
+    },
+    "Custom OpenAI Compatible": {
+        "icon": "Bot",
+        "max_tokens_field_name": "max_tokens",
+        "variables": [
+            {
+                "variable_name": "Base URL",
+                "variable_key": "CUSTOM_OPENAI_BASE_URL",
+                "required": True,
+                "is_secret": False,
+                "is_list": False,
+                "options": [],
+                "langchain_param": "base_url",
+                "component_metadata": {
+                    "mapping_field": "base_url",
+                    "required": False,
+                    "advanced": True,
+                    "info": "Base URL for your OpenAI-compatible API, for example https://your-endpoint/v1",
+                },
+            },
+            {
+                "variable_name": "API Key",
+                "variable_key": "CUSTOM_OPENAI_API_KEY",
+                "required": True,
+                "is_secret": True,
+                "is_list": False,
+                "options": [],
+                "langchain_param": "api_key",
+                "component_metadata": {
+                    "mapping_field": "api_key",
+                    "required": False,
+                    "advanced": True,
+                    "info": "Falls back to CUSTOM_OPENAI_API_KEY environment variable",
+                },
+            },
+        ],
+        "api_docs_url": "https://platform.openai.com/docs/api-reference/models/list",
         "mapping": {
             "model_class": "ChatOpenAI",
             "model_param": "model",

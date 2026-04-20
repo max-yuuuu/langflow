@@ -12,6 +12,7 @@ export interface ModelProviderInfo {
   is_enabled: boolean;
   is_configured?: boolean;
   api_docs_url?: string;
+  icon?: string;
 }
 
 export interface ModelProviderWithStatus extends ModelProviderInfo {
@@ -50,7 +51,7 @@ export const useGetModelProviders: useQueryFunctionType<
 
     return providersData.map((providerInfo) => ({
       ...providerInfo,
-      icon: getProviderIcon(providerInfo.provider),
+      icon: providerInfo.icon || getProviderIcon(providerInfo.provider),
     }));
   };
 
@@ -86,6 +87,7 @@ const getProviderIcon = (providerName: string): string => {
     Ollama: "Ollama",
     "IBM WatsonX": "IBM",
     "IBM watsonx.ai": "IBM",
+    "Custom OpenAI Compatible": "Bot",
   };
 
   return iconMap[providerName] || "Bot";

@@ -349,6 +349,7 @@ def validate_model_provider_key(provider: str, variables: dict[str, str], model_
     if not first_model and provider in [
         "OpenAI",
         "Anthropic",
+        "Custom OpenAI Compatible",
         "Google Generative AI",
         "IBM WatsonX",
     ]:
@@ -363,6 +364,24 @@ def validate_model_provider_key(provider: str, variables: dict[str, str], model_
                 return
             llm = ChatOpenAI(api_key=api_key, model_name=first_model, max_tokens=1)
             llm.invoke("test")
+
+        elif provider == "Custom OpenAI Compatible":
+            from lfx.base.models.model_utils import fetch_openai_compatible_model_names
+
+            api_key = variables.get("CUSTOM_OPENAI_API_KEY")
+            base_url = variables.get("CUSTOM_OPENAI_BASE_URL")
+            if not api_key or not base_url:
+                return
+
+            available_models = fetch_openai_compatible_model_names(base_url, api_key)
+            if model_name and model_name not in available_models:
+                available_str = ", ".join(available_models[:3])
+                msg = (
+                    f"Model '{model_name}' not found on the custom endpoint."
+                    + (f" Available: {available_str}" if available_str else "")
+                )
+                logger.error(msg)
+                raise ValueError(msg)
 
         elif provider == "Anthropic":
             from langchain_anthropic import ChatAnthropic  # type: ignore  # noqa: PGH003
@@ -439,7 +458,7 @@ def validate_model_provider_key(provider: str, variables: dict[str, str], model_
         raise
     except Exception as e:
         error_msg = str(e).lower()
-        if any(word in error_msg for word in ["401", "authentication", "api key"]):
+        if any(word in error_msg for word in ["401", "authentication", "api key", "unauthorized"]):
             msg = f"Invalid API key for {provider}"
             logger.error(f"Invalid API key for {provider}: {e}")
             raise ValueError(msg) from e
@@ -448,6 +467,10 @@ def validate_model_provider_key(provider: str, variables: dict[str, str], model_
         if provider == "Ollama":
             msg = "Invalid Ollama base URL"
             logger.error(msg)
+            raise ValueError(msg) from e
+        if provider == "Custom OpenAI Compatible":
+            msg = "Invalid custom OpenAI-compatible base URL"
+            logger.error("%s: %s", msg, e)
             raise ValueError(msg) from e
 
         # For others, log and return (allow saving despite minor errors)

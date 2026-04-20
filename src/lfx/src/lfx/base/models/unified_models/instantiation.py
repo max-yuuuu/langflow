@@ -183,6 +183,22 @@ def get_llm(
         )
         if ollama_base_url_value:
             kwargs[base_url_param] = ollama_base_url_value
+    elif "base_url_param" in metadata:
+        # Generic OpenAI-compatible providers can also be configured via a stored base URL.
+        base_url_param = metadata["base_url_param"]
+        provider_vars = unified_models_module.get_all_variables_for_provider(user_id, provider)
+        provider_variable_map = unified_models_module.get_provider_all_variables(provider)
+        base_url_var_key = next(
+            (
+                var.get("variable_key")
+                for var in provider_variable_map
+                if var.get("langchain_param") == base_url_param
+            ),
+            None,
+        )
+        base_url_value = provider_vars.get(base_url_var_key) if base_url_var_key else None
+        if base_url_value:
+            kwargs[base_url_param] = base_url_value
 
     try:
         return model_class(**kwargs)

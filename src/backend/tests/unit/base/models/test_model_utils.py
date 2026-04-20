@@ -6,9 +6,15 @@ by Akash Joshi / Anderson Filho: ``get_model_name`` returns ``"Custom"`` for
 is set on a different attribute than the one ``next()`` happens to find first.
 """
 
+from unittest.mock import MagicMock, patch
+
 from langchain_ibm import ChatWatsonx
 from langchain_openai import AzureChatOpenAI, ChatOpenAI
-from lfx.base.models.model_utils import get_model_name
+from lfx.base.models.model_utils import (
+    fetch_live_custom_openai_compatible_models,
+    fetch_openai_compatible_model_names,
+    get_model_name,
+)
 
 
 class _AttrBag:
@@ -98,3 +104,36 @@ class TestGetModelName:
             project_id="fake",
         )
         assert get_model_name(llm) == "meta-llama/llama-3-3-70b-instruct"
+
+
+class TestOpenAICompatibleModelDiscovery:
+    """OpenAI-compatible providers should discover models from /models endpoints."""
+
+    @patch("lfx.base.models.model_utils.requests.get")
+    def test_should_fetch_models_from_v1_models_endpoint(self, mock_get):
+        response = MagicMock()
+        response.json.return_value = {"data": [{"id": "foo-1"}, {"id": "bar-2"}]}
+        response.raise_for_status.return_value = None
+        mock_get.return_value = response
+
+        assert fetch_openai_compatible_model_names("https://example.com/v1", "sk-test") == [
+            "bar-2",
+            "foo-1",
+        ]
+        mock_get.assert_called_once_with(
+            "https://example.com/v1/models",
+            headers={"Accept": "application/json", "Authorization": "Bearer sk-test"},
+            timeout=10,
+        )
+
+    @patch("lfx.base.models.model_utils.get_provider_variable_value")
+    @patch("lfx.base.models.model_utils.fetch_openai_compatible_model_names")
+    def test_should_build_live_custom_provider_models(self, mock_fetch_models, mock_get_variable):
+        mock_get_variable.side_effect = ["https://example.com/v1", "sk-test"]
+        mock_fetch_models.return_value = ["my-gpt-4o", "my-gpt-4.1-mini"]
+
+        models = fetch_live_custom_openai_compatible_models("user-id")
+
+        assert [model["name"] for model in models] == ["my-gpt-4o", "my-gpt-4.1-mini"]
+        assert all(model["provider"] == "Custom OpenAI Compatible" for model in models)
+        assert all(model["model_type"] == "llm" for model in models)

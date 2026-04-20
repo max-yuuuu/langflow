@@ -15,6 +15,7 @@ async def test_models_endpoint_default(client: AsyncClient, logged_in_headers):
     providers = {entry["provider"] for entry in data}
     assert "OpenAI" in providers
     assert "Anthropic" in providers
+    assert "Custom OpenAI Compatible" in providers
     assert "Google Generative AI" in providers
 
     for model in _flatten_models(data):

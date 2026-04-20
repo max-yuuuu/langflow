@@ -121,6 +121,32 @@ class ValidateProviderResponse(BaseModel):
     error: str | None = None
 
 
+def _ensure_metadata_only_providers(
+    provider_entries: list[dict],
+    selected_providers: list[str] | None = None,
+) -> list[dict]:
+    """Ensure providers defined only in metadata are still visible in the settings UI."""
+    known_providers = {entry.get("provider") for entry in provider_entries}
+    provider_metadata = get_model_provider_metadata()
+
+    for provider_name, metadata in provider_metadata.items():
+        if selected_providers and provider_name not in selected_providers:
+            continue
+        if provider_name in known_providers:
+            continue
+
+        provider_entries.append(
+            {
+                "provider": provider_name,
+                "models": [],
+                "num_models": 0,
+                **metadata,
+            }
+        )
+
+    return provider_entries
+
+
 @router.get("/providers", status_code=200, dependencies=[Depends(get_current_active_user)])
 async def list_model_providers() -> list[str]:
     """Return available model providers."""
@@ -194,6 +220,7 @@ async def list_models(
         model_type=model_type,
         **metadata_filters,
     )
+    filtered_models = _ensure_metadata_only_providers(filtered_models, selected_providers)
 
     # Add configured and enabled status to each provider
     for provider_dict in filtered_models:

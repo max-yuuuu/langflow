@@ -512,17 +512,26 @@ export const useProviderConfiguration = ({
   const handleDisconnect = useCallback(async () => {
     if (!syncedSelectedProvider) return;
 
-    const variableName =
-      PROVIDER_VARIABLE_MAPPING[syncedSelectedProvider.provider];
-    if (!variableName) return;
+    const variableKeys = (
+      providerVariables.length > 0
+        ? providerVariables.map((variable) => variable.variable_key)
+        : [PROVIDER_VARIABLE_MAPPING[syncedSelectedProvider.provider]].filter(
+            Boolean,
+          )
+    ) as string[];
+    if (variableKeys.length === 0) return;
 
-    const existingVariable = globalVariables.find(
-      (v) => v.name === variableName,
+    const existingVariables = globalVariables.filter((v) =>
+      variableKeys.includes(v.name),
     );
-    if (!existingVariable) return;
+    if (existingVariables.length === 0) return;
 
     try {
-      await deleteGlobalVariable({ id: existingVariable.id });
+      await Promise.all(
+        existingVariables.map((variable) =>
+          deleteGlobalVariable({ id: variable.id }),
+        ),
+      );
 
       setSuccessData({
         title: `${syncedSelectedProvider.provider} Disconnected`,
@@ -540,6 +549,7 @@ export const useProviderConfiguration = ({
     }
   }, [
     syncedSelectedProvider,
+    providerVariables,
     globalVariables,
     deleteGlobalVariable,
     setSuccessData,

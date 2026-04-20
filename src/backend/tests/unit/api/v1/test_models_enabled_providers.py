@@ -414,6 +414,7 @@ async def test_provider_variable_mapping_returns_full_variable_info(client: Asyn
     # Check that known providers exist
     assert "OpenAI" in result
     assert "Anthropic" in result
+    assert "Custom OpenAI Compatible" in result
     assert "Google Generative AI" in result
     assert "Ollama" in result
     assert "IBM WatsonX" in result
@@ -437,6 +438,11 @@ async def test_provider_variable_mapping_returns_full_variable_info(client: Asyn
     assert openai_api_key_var is not None
     assert openai_api_key_var["required"] is True
     assert openai_api_key_var["is_secret"] is True
+
+    custom_vars = result["Custom OpenAI Compatible"]
+    custom_var_keys = {v["variable_key"] for v in custom_vars}
+    assert "CUSTOM_OPENAI_BASE_URL" in custom_var_keys
+    assert "CUSTOM_OPENAI_API_KEY" in custom_var_keys
 
 
 @pytest.mark.usefixtures("active_user")
@@ -489,6 +495,7 @@ async def test_backward_compatible_variable_mapping(client: AsyncClient, logged_
     assert isinstance(mapping, dict)
     assert mapping.get("OpenAI") == "OPENAI_API_KEY"
     assert mapping.get("Anthropic") == "ANTHROPIC_API_KEY"
+    assert mapping.get("Custom OpenAI Compatible") == "CUSTOM_OPENAI_API_KEY"
     assert mapping.get("Google Generative AI") == "GOOGLE_API_KEY"
     assert mapping.get("Ollama") == "OLLAMA_BASE_URL"
     # IBM WatsonX should return primary secret (API key)
@@ -564,3 +571,46 @@ async def test_list_models_ollama_empty_when_live_fetch_returns_empty(client: As
     assert ollama_provider is not None
     assert len(ollama_provider["models"]) == 0
     assert ollama_provider["num_models"] == 0
+
+
+@pytest.mark.usefixtures("active_user")
+async def test_list_models_returns_live_custom_openai_models_when_configured(
+    client: AsyncClient,
+    logged_in_headers,
+):
+    """Metadata-only providers should appear and be populated from live model discovery."""
+    live_custom_models = [
+        {"name": "my-gpt-4o", "icon": "Bot", "tool_calling": True},
+        {"name": "my-gpt-4.1-mini", "icon": "Bot", "tool_calling": True},
+    ]
+
+    async def mock_get_enabled_providers(*_args, **_kwargs):
+        return {
+            "enabled_providers": ["Custom OpenAI Compatible"],
+            "provider_status": {"Custom OpenAI Compatible": True},
+        }
+
+    def mock_get_live_models(_user_id, provider, model_type="llm"):
+        if provider == "Custom OpenAI Compatible" and model_type == "llm":
+            return live_custom_models
+        return []
+
+    with (
+        mock.patch(
+            "langflow.api.v1.models.get_enabled_providers",
+            side_effect=mock_get_enabled_providers,
+        ),
+        mock.patch(
+            "lfx.base.models.model_utils.get_live_models_for_provider",
+            side_effect=mock_get_live_models,
+        ),
+    ):
+        response = await client.get("api/v1/models", headers=logged_in_headers)
+
+    assert response.status_code == status.HTTP_200_OK
+    data = response.json()
+    custom_provider = next((p for p in data if p.get("provider") == "Custom OpenAI Compatible"), None)
+    assert custom_provider is not None
+    assert custom_provider["is_configured"] is True
+    assert custom_provider["num_models"] == 2
+    assert [m["model_name"] for m in custom_provider["models"]] == ["my-gpt-4o", "my-gpt-4.1-mini"]

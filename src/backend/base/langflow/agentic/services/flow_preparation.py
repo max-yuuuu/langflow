@@ -83,14 +83,13 @@ def inject_model_into_flow(
     if api_key_var:
         provider_fields["api_key"] = api_key_var
 
-    if provider in {"IBM WatsonX", "IBM watsonx.ai"}:
-        if pv.get("WATSONX_URL"):
-            provider_fields["base_url_ibm_watsonx"] = pv["WATSONX_URL"]
-        if pv.get("WATSONX_PROJECT_ID"):
-            provider_fields["project_id"] = pv["WATSONX_PROJECT_ID"]
-    elif provider == "Ollama":
-        if pv.get("OLLAMA_BASE_URL"):
-            provider_fields["base_url_ollama"] = pv["OLLAMA_BASE_URL"]
+    for variable in provider_config.get("variables", []):
+        variable_key = variable.get("variable_key")
+        mapping_field = variable.get("component_metadata", {}).get("mapping_field")
+        if not variable_key or not mapping_field or mapping_field == "api_key":
+            continue
+        if pv.get(variable_key):
+            provider_fields[mapping_field] = pv[variable_key]
 
     # Inject into all Agent nodes
     for node in flow_data.get("data", {}).get("nodes", []):
