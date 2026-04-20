@@ -287,6 +287,17 @@ def get_embedding_model_options(
             "show_progress_bar": "show_progress_bar",
             "model_kwargs": "model_kwargs",
         },
+        "Custom OpenAI Compatible": {
+            "model": "model",
+            "api_key": "api_key",
+            "api_base": "base_url",
+            "dimensions": "dimensions",
+            "chunk_size": "chunk_size",
+            "request_timeout": "timeout",
+            "max_retries": "max_retries",
+            "show_progress_bar": "show_progress_bar",
+            "model_kwargs": "model_kwargs",
+        },
         "Google Generative AI": {
             "model": "model",
             "api_key": "google_api_key",

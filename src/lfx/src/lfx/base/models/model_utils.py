@@ -323,12 +323,21 @@ def fetch_openai_compatible_model_names(base_url: str, api_key: str | None = Non
     return []
 
 
+def _matches_openai_compatible_model_type(model_name: str, model_type: str) -> bool:
+    """Classify OpenAI-compatible model names into LLM vs embeddings."""
+    normalized_name = model_name.lower()
+    is_embedding_model = "embedding" in normalized_name
+    if model_type == "embeddings":
+        return is_embedding_model
+    return not is_embedding_model
+
+
 def fetch_live_custom_openai_compatible_models(
     user_id: UUID | str | None,
     model_type: str = "llm",
 ) -> list[dict]:
     """Fetch live models from a configured OpenAI-compatible endpoint."""
-    if model_type != "llm":
+    if model_type not in {"llm", "embeddings"}:
         return []
 
     base_url = get_provider_variable_value(user_id, "CUSTOM_OPENAI_BASE_URL")
@@ -337,14 +346,18 @@ def fetch_live_custom_openai_compatible_models(
         return []
 
     try:
-        model_names = fetch_openai_compatible_model_names(base_url, api_key)
+        model_names = [
+            name
+            for name in fetch_openai_compatible_model_names(base_url, api_key)
+            if _matches_openai_compatible_model_type(name, model_type)
+        ]
         return [
             create_model_metadata(
                 provider="Custom OpenAI Compatible",
                 name=name,
                 icon="Bot",
-                model_type="llm",
-                tool_calling=True,
+                model_type=model_type,
+                tool_calling=model_type == "llm",
                 default=i < MIN_DEFAULT_MODELS,
             )
             for i, name in enumerate(model_names)
