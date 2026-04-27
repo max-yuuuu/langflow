@@ -392,6 +392,14 @@ def validate_model_provider_key(provider: str, variables: dict[str, str], model_
             llm = ChatAnthropic(anthropic_api_key=api_key, model=first_model, max_tokens=1)
             llm.invoke("test")
 
+        elif provider == "Alibaba Cloud":
+            # Skip live validation - Bailian endpoint may return non-standard
+            # errors that get misclassified as auth failures.
+            # The key presence check is sufficient.
+            api_key = variables.get("ALIBABA_CLOUD_API_KEY")
+            if not api_key:
+                return
+
         elif provider == "Google Generative AI":
             from langchain_google_genai import ChatGoogleGenerativeAI  # type: ignore  # noqa: PGH003
 

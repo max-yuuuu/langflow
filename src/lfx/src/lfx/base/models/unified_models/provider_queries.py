@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from functools import lru_cache
 
+from lfx.base.models.alibaba_cloud_constants import ALIBABA_CLOUD_MODELS_DETAILED
 from lfx.base.models.anthropic_constants import ANTHROPIC_MODELS_DETAILED
 from lfx.base.models.google_generative_ai_constants import (
     GOOGLE_GENERATIVE_AI_EMBEDDING_MODELS_DETAILED,
@@ -34,6 +35,7 @@ model_provider_metadata = get_model_provider_metadata()
 def get_models_detailed() -> list[list[dict]]:
     """Return grouped static model metadata from provider constants."""
     return [
+        ALIBABA_CLOUD_MODELS_DETAILED,
         ANTHROPIC_MODELS_DETAILED,
         OPENAI_MODELS_DETAILED,
         OPENAI_EMBEDDING_MODELS_DETAILED,

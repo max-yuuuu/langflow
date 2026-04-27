@@ -88,6 +88,7 @@ const getProviderIcon = (providerName: string): string => {
     "IBM WatsonX": "IBM",
     "IBM watsonx.ai": "IBM",
     "Custom OpenAI Compatible": "Bot",
+    "Alibaba Cloud": "AlibabaCloud",
   };
 
   return iconMap[providerName] || "Bot";

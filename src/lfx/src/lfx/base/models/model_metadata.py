@@ -162,6 +162,47 @@ MODEL_PROVIDER_METADATA: dict[str, Any] = {
             "model_param": "model",
         },
     },
+    "Alibaba Cloud": {
+        "icon": "AlibabaCloud",
+        "max_tokens_field_name": "max_tokens",
+        "variables": [
+            {
+                "variable_name": "Alibaba Cloud API Key",
+                "variable_key": "ALIBABA_CLOUD_API_KEY",
+                "required": True,
+                "is_secret": True,
+                "is_list": False,
+                "options": [],
+                "langchain_param": "api_key",
+                "component_metadata": {
+                    "mapping_field": "api_key",
+                    "required": False,
+                    "advanced": True,
+                    "info": "Falls back to ALIBABA_CLOUD_API_KEY environment variable",
+                },
+            },
+            {
+                "variable_name": "Alibaba Cloud API URL",
+                "variable_key": "ALIBABA_CLOUD_API_URL",
+                "required": True,
+                "is_secret": False,
+                "is_list": False,
+                "options": [],
+                "langchain_param": "anthropic_api_url",
+                "component_metadata": {
+                    "mapping_field": "base_url",
+                    "required": False,
+                    "advanced": True,
+                    "info": "Alibaba Cloud Bailian Anthropic-compatible API endpoint",
+                },
+            },
+        ],
+        "api_docs_url": "https://bailian.console.aliyun.com",
+        "mapping": {
+            "model_class": "ChatAnthropic",
+            "model_param": "model",
+        },
+    },
     "Google Generative AI": {
         "icon": "GoogleGenerativeAI",
         "max_tokens_field_name": "max_output_tokens",

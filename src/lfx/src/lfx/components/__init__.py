@@ -114,6 +114,7 @@ _dynamic_imports = {
     # Category modules (existing functionality)
     "agentql": "__module__",
     "aiml": "__module__",
+    "alibaba_cloud": "__module__",
     "altk": "__module__",
     "amazon": "__module__",
     "anthropic": "__module__",
@@ -247,6 +248,7 @@ __all__ = [
     "Notion",
     "agentql",
     "aiml",
+    "alibaba_cloud",
     "altk",
     "amazon",
     "anthropic",

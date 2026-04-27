@@ -166,6 +166,17 @@ def _get_anthropic_inputs_and_fields():
     return anthropic_inputs, create_input_fields_dict(anthropic_inputs, "")
 
 
+def _get_alibaba_cloud_inputs_and_fields():
+    try:
+        from lfx.components.alibaba_cloud.alibaba_cloud import AlibabaCloudModelComponent
+
+        alibaba_cloud_inputs = get_filtered_inputs(AlibabaCloudModelComponent)
+    except ImportError as e:
+        msg = "Alibaba Cloud is not installed. Please install it with `pip install langchain-anthropic`."
+        raise ImportError(msg) from e
+    return alibaba_cloud_inputs, create_input_fields_dict(alibaba_cloud_inputs, "")
+
+
 def _get_nvidia_inputs_and_fields():
     try:
         from lfx.components.nvidia.nvidia import NVIDIAModelComponent
@@ -257,6 +268,21 @@ try:
         "prefix": "",
         "component_class": AnthropicModelComponent(),
         "icon": AnthropicModelComponent.icon,
+        "is_active": True,
+    }
+except ImportError:
+    pass
+
+try:
+    from lfx.components.alibaba_cloud.alibaba_cloud import AlibabaCloudModelComponent
+
+    alibaba_cloud_inputs, alibaba_cloud_fields = _get_alibaba_cloud_inputs_and_fields()
+    MODEL_PROVIDERS_DICT["Alibaba Cloud"] = {
+        "fields": alibaba_cloud_fields,
+        "inputs": alibaba_cloud_inputs,
+        "prefix": "",
+        "component_class": AlibabaCloudModelComponent(),
+        "icon": AlibabaCloudModelComponent.icon,
         "is_active": True,
     }
 except ImportError:

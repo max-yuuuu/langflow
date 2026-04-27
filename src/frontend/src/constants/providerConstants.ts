@@ -28,6 +28,7 @@ export const PROVIDER_VARIABLE_MAPPING: Record<string, string> = {
   OpenAI: "OPENAI_API_KEY",
   "Custom OpenAI Compatible": "CUSTOM_OPENAI_API_KEY",
   Anthropic: "ANTHROPIC_API_KEY",
+  "Alibaba Cloud": "ALIBABA_CLOUD_API_KEY",
   "Google Generative AI": "GOOGLE_API_KEY",
   Google: "GOOGLE_API_KEY",
   Ollama: "OLLAMA_BASE_URL",

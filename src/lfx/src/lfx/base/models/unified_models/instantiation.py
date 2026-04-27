@@ -127,7 +127,7 @@ def get_llm(
             pass  # Skip invalid max_tokens (e.g. empty string from form input)
 
     # Enable streaming usage for providers that support it
-    if provider in ["OpenAI", "Anthropic"]:
+    if provider in ["OpenAI", "Anthropic", "Alibaba Cloud"]:
         kwargs["stream_usage"] = True
 
     # Add provider-specific parameters
@@ -184,7 +184,7 @@ def get_llm(
         if ollama_base_url_value:
             kwargs[base_url_param] = ollama_base_url_value
     elif "base_url_param" in metadata:
-        # Generic OpenAI-compatible providers can also be configured via a stored base URL.
+        # Generic providers with custom base URL configuration.
         base_url_param = metadata["base_url_param"]
         provider_vars = unified_models_module.get_all_variables_for_provider(user_id, provider)
         provider_variable_map = unified_models_module.get_provider_all_variables(provider)
@@ -199,6 +199,11 @@ def get_llm(
         base_url_value = provider_vars.get(base_url_var_key) if base_url_var_key else None
         if base_url_value:
             kwargs[base_url_param] = base_url_value
+        elif provider == "Alibaba Cloud":
+            # Use default Alibaba Cloud Bailian endpoint if not configured
+            from lfx.base.models.alibaba_cloud_constants import DEFAULT_ALIBABA_CLOUD_API_URL
+
+            kwargs[base_url_param] = DEFAULT_ALIBABA_CLOUD_API_URL
 
     try:
         return model_class(**kwargs)
